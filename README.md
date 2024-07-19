@@ -10,7 +10,7 @@ Recommended OS is CentOS 8 which have Clang 11+, GCC 7+/8+, and you also could i
 Run the command to install and config your vim shit ~
 
 ```sh
-sudo wget -O - https://raw.githubusercontent.com/YingLongGeeker/vim/master/install.sh | sh
+sudo wget -O - https://raw.githubusercontent.com/ylgeeker/vim/master/install.sh | sh
 ```
 
 **🌈 Others:**

@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # make install
-rootpath=/tmp/YLGProjects/vim/
+rootpath=/tmp/ylgeeker/vim/
 rm -rf $rootpath && mkdir -p $rootpath
 cd $rootpath
 pwd
@@ -182,7 +182,7 @@ fi
 
 # check local vim-plug
 need_config_vim=0
-wget --no-check-certificate -N https://raw.githubusercontent.com/YLGProjects/vim/master/vimrc -P $rootpath
+wget --no-check-certificate -N https://raw.githubusercontent.com/ylgeeker/vim/master/vimrc -P $rootpath
 if [ -f "${HOME}/.vimrc" ]; then
     newFile=`md5sum $rootpath/vimrc | awk -F ' ' '{print $1}'`
     curFile=`md5sum ${HOME}/.vimrc | awk -F ' ' '{print $1}'`

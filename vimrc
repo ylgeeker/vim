@@ -158,6 +158,30 @@ let g:clang_format#filetype_style_options = {
 " zivyangll/git-blame.vim
 nnoremap <Leader>f :<C-u>call gitblame#echo()<CR>
 
+" ---------------------------------------------------------------------------
+" Cursor 集成（一键安装脚本会安装 Cursor 并配置，此处自动启用）
+" - Neovim: 加载 plugin/cursor.vim（Agent/Plan/Ask 等完整能力）
+" - Vim: 使用下方简单命令，需 Cursor 中执行 "Install 'cursor' to shell"
+"
+" 纯终端使用（无 Cursor 界面，仅 SSH/系统终端里用 vim）：取消下面三行注释即可
+" let g:cursor_disable_agent = 1
+" let g:cursor_agent_auto_disable_outside_ide = 1
+" let g:cursor_agent_silent_disable = 1
+" ---------------------------------------------------------------------------
+let g:cursor_disable_agent = get(g:, 'cursor_disable_agent', 0)
+if has('nvim')
+  " Neovim：完整插件（jobstart/terminal），键位见 plugin/cursor.vim
+  runtime! plugin/cursor.vim
+elseif executable('cursor')
+  " 纯 Vim：打开当前文件/目录到 Cursor
+  command! -bar Cursor execute 'silent !cursor' shellescape(expand('%:p'), 1) '&'
+  command! -bar CursorProject execute 'silent !cursor' shellescape(expand('%:p:h'), 1) '&'
+  command! -bar CursorFolder execute 'silent !cursor' shellescape(getcwd(), 1) '&'
+  nnoremap <silent> <Leader>cc :Cursor<CR>
+  nnoremap <silent> <Leader>cP :CursorProject<CR>
+  nnoremap <silent> <Leader>cF :CursorFolder<CR>
+endif
+
 " octol/vim-cpp-enhanced-highlight
 let g:cpp_class_scope_highlight = 1
 let g:cpp_member_variable_highlight = 1

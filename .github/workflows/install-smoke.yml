@@ -74,4 +74,16 @@ jobs:
           chmod +x install.sh scripts/bootstrap.sh
           bash -n install.sh
           bash -n scripts/bootstrap.sh
+          bash -n scripts/lib/remote-entry.sh
           ./install.sh --dry-run || true
+      - name: Remote entry empty install_args (macOS bash 3.2)
+        run: |
+          set -euo pipefail
+          # shellcheck source=scripts/lib/remote-entry.sh
+          source scripts/lib/remote-entry.sh
+          install_args=()
+          if [[ ${#install_args[@]} -eq 1 ]] && _remote_install_args_is_dry_run_only "${install_args[0]}"; then
+            echo "unexpected dry-run branch"
+            exit 1
+          fi
+          echo "empty install_args: OK"

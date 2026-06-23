@@ -147,7 +147,7 @@ remote_entry_main() {
     esac
   done
 
-  if _remote_install_args_is_dry_run_only "${install_args[@]}"; then
+  if [[ ${#install_args[@]} -eq 1 ]] && _remote_install_args_is_dry_run_only "${install_args[0]}"; then
     _remote_entry_dry_run "$install_dir"
     exit 0
   fi

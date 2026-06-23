@@ -80,6 +80,9 @@ install_node
 stage_end "Node.js"
 
 stage_begin "System dependencies"
+if [[ "$USER_INSTALL" == "1" && "$SYSTEM_UPGRADE" == "1" && "$IS_MACOS" -eq 0 ]]; then
+  warn "--system-upgrade ignored with --user-install on Linux (no system package install; macOS still runs brew update)"
+fi
 if [[ "$IS_DEBIAN" -eq 1 ]]; then install_deps_debian
 elif [[ "$IS_RHEL" -eq 1 ]]; then install_deps_rhel
 elif [[ "$IS_MACOS" -eq 1 ]]; then install_deps_macos
@@ -113,6 +116,7 @@ if [[ "$SKIP_CURSOR" == "0" ]]; then
 fi
 
 stage_begin "Verify"
+ensure_output_newline
 verify_install
 stage_end "Verify"
 

@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 # Shared helpers for install scripts.
 
+ensure_output_newline() {
+  printf '\n'
+}
+
+run_with_timeout() {
+  local secs="$1"
+  shift
+  if command -v timeout &>/dev/null; then
+    timeout "$secs" "$@"
+  else
+    warn "timeout not found; running without time limit"
+    "$@"
+  fi
+}
+
 info()  { echo -e "\033[34;1m[INFO]\033[0m $*"; }
 ok()    { echo -e "\033[32;1m[OK]\033[0m $*"; }
 warn()  { echo -e "\033[33;1m[WARN]\033[0m $*"; }

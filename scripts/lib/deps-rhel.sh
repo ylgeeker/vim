@@ -17,12 +17,20 @@ install_deps_rhel() {
   fix_centos_vault
   if [[ "$USE_DNF" -eq 1 ]]; then
     run_as_root dnf makecache -y
+    if [[ "$SYSTEM_UPGRADE" == "1" ]]; then
+      info "Running system package upgrade (--system-upgrade)..."
+      run_as_root dnf upgrade -y || warn "dnf upgrade failed; continuing with dependency install"
+    fi
     run_as_root dnf groupinstall -y "Development Tools" || true
     run_as_root dnf install -y autoconf automake libtool pkg-config gettext ncurses-devel \
       curl git wget make cmake python3-devel clang llvm clang-tools-extra \
       the_silver_searcher nasm binutils zsh
   else
     run_as_root yum makecache
+    if [[ "$SYSTEM_UPGRADE" == "1" ]]; then
+      info "Running system package upgrade (--system-upgrade)..."
+      run_as_root yum update -y || warn "yum update failed; continuing with dependency install"
+    fi
     run_as_root yum groupinstall -y "Development Tools" || true
     run_as_root yum install -y autoconf automake libtool m4 pkg-config gettext ncurses-devel \
       curl git wget make cmake python3-devel clang llvm \

@@ -15,8 +15,9 @@ install_bazel_debian() {
 install_deps_debian() {
   if [[ "$USER_INSTALL" != "1" ]]; then
     run_as_root apt-get update
-    if [[ "$MINIMAL_UPGRADE" == "1" ]]; then
-      run_as_root apt-get upgrade -y
+    if [[ "$SYSTEM_UPGRADE" == "1" ]]; then
+      info "Running system package upgrade (--system-upgrade)..."
+      run_as_root apt-get upgrade -y || warn "apt-get upgrade failed; continuing with dependency install"
     fi
     run_as_root apt-get install -y \
       build-essential autoconf automake libtool pkg-config m4 gettext flex bison \

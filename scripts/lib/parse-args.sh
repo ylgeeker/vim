@@ -9,7 +9,7 @@ Usage: ./install.sh [OPTIONS]
   --copy-config       Copy config files instead of symlinks
   --user-install      Install without sudo (~/.local)
   --include-gitconfig Include repo gitconfig in ~/.gitconfig
-  --minimal-upgrade   Run apt/yum upgrade before install
+  --system-upgrade    Run apt/dnf/yum upgrade (Linux) or brew update (macOS) before install
   --install-bazel     Install Bazel (optional)
   --node-version N    Node.js major version (default: 20)
   --go-version V      Go toolchain version (default: 1.24.2)
@@ -37,7 +37,7 @@ _parse_install_defaults() {
   COPY_CONFIG=0
   USER_INSTALL=0
   INCLUDE_GITCONFIG=0
-  MINIMAL_UPGRADE=0
+  SYSTEM_UPGRADE=0
   INSTALL_BAZEL=0
   NODE_VERSION=20
   GO_VERSION=1.24.2
@@ -50,7 +50,7 @@ check_install_args_known() {
     case "$1" in
       --with-cursor|--copy-config|--user-install|--include-gitconfig)
         shift ;;
-      --minimal-upgrade|--install-bazel|--dry-run)
+      --system-upgrade|--install-bazel|--dry-run)
         shift ;;
       --node-version|--go-version|--install-root)
         [[ $# -ge 2 ]] || { echo "ERR: $1 requires a value" >&2; return 1; }
@@ -90,7 +90,7 @@ parse_install_args() {
       --copy-config) COPY_CONFIG=1; shift ;;
       --user-install) USER_INSTALL=1; shift ;;
       --include-gitconfig) INCLUDE_GITCONFIG=1; shift ;;
-      --minimal-upgrade) MINIMAL_UPGRADE=1; shift ;;
+      --system-upgrade) SYSTEM_UPGRADE=1; shift ;;
       --install-bazel) INSTALL_BAZEL=1; shift ;;
       --node-version)
         [[ $# -ge 2 ]] || { echo "ERR: --node-version requires a value" >&2; exit 1; }
@@ -124,7 +124,7 @@ parse_install_args() {
   fi
 
   export SKIP_CURSOR COPY_CONFIG USER_INSTALL INCLUDE_GITCONFIG
-  export MINIMAL_UPGRADE INSTALL_BAZEL NODE_VERSION GO_VERSION
+  export SYSTEM_UPGRADE INSTALL_BAZEL NODE_VERSION GO_VERSION
   export INSTALL_ROOT DRY_RUN
 }
 

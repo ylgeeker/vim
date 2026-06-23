@@ -1,0 +1,30 @@
+name: install-smoke
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax check
+        run: |
+          chmod +x install.sh scripts/bootstrap.sh uninstall.sh scripts/lib/*.sh
+          bash -n install.sh
+          for f in scripts/lib/*.sh; do bash -n "$f"; done
+      - name: Dry run detect
+        run: ./install.sh --dry-run
+
+  verify-scripts:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax + dry-run
+        run: |
+          chmod +x install.sh scripts/bootstrap.sh
+          bash -n install.sh
+          ./install.sh --dry-run || true

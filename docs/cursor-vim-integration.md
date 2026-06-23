@@ -4,19 +4,22 @@
 
 ## 一键安装（推荐）
 
-本仓库的 **一键安装脚本** 会自动：
-
-- 安装 Cursor 编辑器（Linux .deb/.rpm/AppImage）
-- 安装 Cursor CLI（agent）并确保 `~/.local/bin` 在 PATH
-- 将 `plugin/cursor.vim` 复制到 `~/.vim/plugin/` 并在 vimrc 中自动启用（Neovim 加载完整插件，Vim 使用内置简单命令）
-
-克隆仓库后执行：
+本仓库 **默认不安装 Cursor**。仅配置 Vim 开发环境：
 
 ```bash
 ./install.sh
 ```
 
-跳过 Cursor 安装仅配 Vim：`SKIP_CURSOR=1 ./install.sh`。
+需要 Cursor 编辑器与 agent CLI 时：
+
+```bash
+./install.sh --with-cursor
+```
+
+安装脚本会：
+
+- （`--with-cursor` 时）安装 Cursor 编辑器与 agent CLI
+- 将 `plugin/cursor.vim` symlink 到 `~/.vim/plugin/` 并在 vimrc 中启用
 
 ## 前置条件（若未使用一键脚本）
 

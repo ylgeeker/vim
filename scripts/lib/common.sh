@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Shared helpers for install scripts.
+
+info()  { echo -e "\033[34;1m[INFO]\033[0m $*"; }
+ok()    { echo -e "\033[32;1m[OK]\033[0m $*"; }
+warn()  { echo -e "\033[33;1m[WARN]\033[0m $*"; }
+err()   { echo -e "\033[31;1m[ERR]\033[0m $*"; }
+die()   { err "$*"; exit 1; }
+
+STAGE_START=$SECONDS
+stage_begin() {
+  STAGE_START=$SECONDS
+  info "==> $*"
+}
+stage_end() {
+  local elapsed=$((SECONDS - STAGE_START))
+  ok "$1 (${elapsed}s)"
+}
+
+run_as_root() {
+  if [[ "$USER_INSTALL" == "1" ]]; then
+    return 1
+  fi
+  if [[ "$(id -u)" -eq 0 ]]; then
+    "$@"
+  elif command -v sudo &>/dev/null; then
+    sudo "$@"
+  else
+    return 1
+  fi
+}
+
+ensure_path_line() {
+  local line="$1"
+  local file
+  for file in "$HOME/.bashrc" "$HOME/.zshrc"; do
+    [[ -f "$file" ]] || continue
+    grep -qF "$line" "$file" 2>/dev/null && continue
+    echo "$line" >> "$file"
+  done
+  case "$line" in
+    export\ PATH=*)
+      local dir="${line#export PATH=}"
+      dir="${dir%%:\$PATH*}"
+      dir="${dir#\"}"
+      dir="${dir%\"}"
+      export PATH="$dir:$PATH"
+      ;;
+  esac
+}
+
+download() {
+  local url="$1" dest="$2"
+  if command -v curl &>/dev/null; then
+    curl -fsSL -o "$dest" "$url"
+  elif command -v wget &>/dev/null; then
+    wget -q -O "$dest" "$url"
+  else
+    die "Need curl or wget to download $url"
+  fi
+}
+
+need_cmd() {
+  command -v "$1" &>/dev/null
+}
+
+node_major_version() {
+  need_cmd node || echo 0
+  node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0
+}
+
+# Avoid SIGPIPE under pipefail when only the first line of a command is needed.
+first_line() {
+  local out
+  out="$("$@" 2>/dev/null)" || true
+  [[ -n "$out" ]] || return 1
+  printf '%s' "${out%%$'\n'*}"
+}

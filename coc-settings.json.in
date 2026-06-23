@@ -1,0 +1,11 @@
+{
+  "clangd.path": "@CLANGD_PATH@",
+  "clangd.arguments": [
+    "--header-insertion=never"
+  ],
+  "go.goplsPath": "@GOPLS_PATH@",
+  "python.analysis.venvPath": ".",
+  "python.analysis.diagnosticMode": "workspace",
+  "suggest.autoTrigger": "always",
+  "coc.preferences.extensionUpdateCheck": "never"
+}

@@ -13,26 +13,11 @@ Usage: ./install.sh [OPTIONS]
   --install-bazel     Install Bazel (optional)
   --node-version N    Node.js major version (default: 20)
   --go-version V      Go toolchain version (default: 1.24.2)
-  --install-dir PATH  Clone target when vimrc missing
   --install-root PATH Build cache directory
-  --repo-url URL      Git remote for auto-clone
   --dry-run           Detect OS and exit
   -h, --help          Show this help
 
 Default: Vim/Neovim + coc.nvim dev env only (no Cursor).
-EOF
-}
-
-bootstrap_usage() {
-  cat <<'EOF'
-Usage: ./scripts/bootstrap.sh [OPTIONS] [-- INSTALL_OPTIONS]
-
-Bootstrap options:
-  --install-dir PATH  Clone destination (default: ~/.local/share/ylgeeker/vim)
-  --repo-url URL      Git remote (default: https://github.com/ylgeeker/vim.git)
-  -h, --help          Show this help
-
-All options after "--" are passed to install.sh (e.g. --with-cursor).
 EOF
 }
 
@@ -56,10 +41,45 @@ _parse_install_defaults() {
   INSTALL_BAZEL=0
   NODE_VERSION=20
   GO_VERSION=1.24.2
-  INSTALL_DIR="${HOME}/.local/share/ylgeeker/vim"
   INSTALL_ROOT="/tmp/ylgeeker/vim-build"
-  GITHUB_REPO="https://github.com/ylgeeker/vim.git"
   DRY_RUN=0
+}
+
+check_install_args_known() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --with-cursor|--copy-config|--user-install|--include-gitconfig)
+        shift ;;
+      --minimal-upgrade|--install-bazel|--dry-run)
+        shift ;;
+      --node-version|--go-version|--install-root)
+        [[ $# -ge 2 ]] || { echo "ERR: $1 requires a value" >&2; return 1; }
+        shift 2
+        ;;
+      -h|--help)
+        install_usage
+        exit 0
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        echo "ERR: unknown option: $1 (try --help)" >&2
+        return 1
+        ;;
+      *)
+        echo "ERR: unexpected argument(s): $*" >&2
+        return 1
+        ;;
+    esac
+  done
+
+  if [[ $# -gt 0 ]]; then
+    echo "ERR: unexpected argument(s): $*" >&2
+    return 1
+  fi
+  return 0
 }
 
 parse_install_args() {
@@ -82,19 +102,9 @@ parse_install_args() {
         GO_VERSION="$2"
         shift 2
         ;;
-      --install-dir)
-        [[ $# -ge 2 ]] || { echo "ERR: --install-dir requires a value" >&2; exit 1; }
-        INSTALL_DIR="$2"
-        shift 2
-        ;;
       --install-root)
         [[ $# -ge 2 ]] || { echo "ERR: --install-root requires a value" >&2; exit 1; }
         INSTALL_ROOT="$2"
-        shift 2
-        ;;
-      --repo-url)
-        [[ $# -ge 2 ]] || { echo "ERR: --repo-url requires a value" >&2; exit 1; }
-        GITHUB_REPO="$2"
         shift 2
         ;;
       --dry-run) DRY_RUN=1; shift ;;
@@ -115,44 +125,7 @@ parse_install_args() {
 
   export SKIP_CURSOR COPY_CONFIG USER_INSTALL INCLUDE_GITCONFIG
   export MINIMAL_UPGRADE INSTALL_BAZEL NODE_VERSION GO_VERSION
-  export INSTALL_DIR INSTALL_ROOT GITHUB_REPO DRY_RUN
-}
-
-parse_bootstrap_args() {
-  INSTALL_DIR="${HOME}/.local/share/ylgeeker/vim"
-  REPO_URL="https://github.com/ylgeeker/vim.git"
-  INSTALL_ARGS=()
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --install-dir)
-        [[ $# -ge 2 ]] || { echo "ERR: --install-dir requires a value" >&2; exit 1; }
-        INSTALL_DIR="$2"
-        shift 2
-        ;;
-      --repo-url)
-        [[ $# -ge 2 ]] || { echo "ERR: --repo-url requires a value" >&2; exit 1; }
-        REPO_URL="$2"
-        shift 2
-        ;;
-      -h|--help) bootstrap_usage; exit 0 ;;
-      --)
-        shift
-        INSTALL_ARGS=("$@")
-        break
-        ;;
-      -*)
-        INSTALL_ARGS+=("$1")
-        shift
-        ;;
-      *)
-        INSTALL_ARGS+=("$1")
-        shift
-        ;;
-    esac
-  done
-
-  export INSTALL_DIR REPO_URL
+  export INSTALL_ROOT DRY_RUN
 }
 
 parse_uninstall_args() {

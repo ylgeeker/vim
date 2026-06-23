@@ -3,6 +3,27 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+
+# Remote/pipe entry: clone before sourcing any repo lib
+if [[ ! -f "${BASH_SOURCE[0]:-}" ]] || [[ ! -f "$REPO_ROOT/vimrc" ]]; then
+  if [[ -f "$REPO_ROOT/scripts/lib/remote-entry.sh" ]]; then
+    # shellcheck source=scripts/lib/remote-entry.sh
+    source "$REPO_ROOT/scripts/lib/remote-entry.sh"
+  else
+    _raw="${REPO_RAW:-https://raw.githubusercontent.com/ylgeeker/vim/main}"
+    _tmp="$(mktemp)"
+    if ! curl -fsSL "${_raw}/scripts/lib/remote-entry.sh" -o "$_tmp"; then
+      rm -f "$_tmp"
+      echo "ERR: failed to load remote-entry.sh from ${_raw}" >&2
+      exit 1
+    fi
+    # shellcheck source=/dev/null
+    source "$_tmp"
+    rm -f "$_tmp"
+  fi
+  remote_entry_main "$@"
+fi
+
 LIB_DIR="$REPO_ROOT/scripts/lib"
 
 # shellcheck source=scripts/lib/parse-args.sh
@@ -18,17 +39,6 @@ if [[ "$DRY_RUN" == "1" ]]; then
   source "$LIB_DIR/detect_os.sh"
   ok "dry-run: detect_os OK"
   exit 0
-fi
-
-# If piped without repo (no vimrc), clone full tree first
-if [[ ! -f "$REPO_ROOT/vimrc" ]]; then
-  mkdir -p "$(dirname "$INSTALL_DIR")"
-  if [[ ! -d "$INSTALL_DIR/.git" ]]; then
-    git clone --depth 1 "$GITHUB_REPO" "$INSTALL_DIR"
-  fi
-  REPO_ROOT="$INSTALL_DIR"
-  LIB_DIR="$REPO_ROOT/scripts/lib"
-  export REPO_ROOT LIB_DIR
 fi
 
 mkdir -p "$INSTALL_ROOT"

@@ -15,9 +15,55 @@ jobs:
         run: |
           chmod +x install.sh scripts/bootstrap.sh uninstall.sh scripts/lib/*.sh
           bash -n install.sh
+          bash -n scripts/bootstrap.sh
+          bash -n scripts/lib/remote-entry.sh
           for f in scripts/lib/*.sh; do bash -n "$f"; done
       - name: Dry run detect
         run: ./install.sh --dry-run
+      - name: Remote dry-run (no clone)
+        env:
+          REPO_RAW: file://${{ github.workspace }}
+        run: |
+          out="$(curl -fsSL "file://${GITHUB_WORKSPACE}/scripts/bootstrap.sh" | bash -s -- --dry-run)"
+          echo "$out" | grep -q 'dry-run: detect_os OK'
+          echo "$out" | grep -vq 'Cloning '
+      - name: Remote bootstrap clone (workspace repo)
+        env:
+          REPO_URL: file://${{ github.workspace }}
+          REPO_RAW: file://${{ github.workspace }}
+        run: |
+          rm -rf "${HOME}/.local/share/ylgeeker/vim"
+          curl -fsSL "file://${GITHUB_WORKSPACE}/scripts/bootstrap.sh" \
+            | bash -s -- --repo-url "file://${GITHUB_WORKSPACE}" --with-cursor --dry-run
+          test -f "${HOME}/.local/share/ylgeeker/vim/vimrc"
+          test -f "${HOME}/.local/share/ylgeeker/vim/scripts/lib/remote-entry.sh"
+      - name: Remote bootstrap via REPO_URL only
+        env:
+          REPO_URL: file://${{ github.workspace }}
+          REPO_RAW: file://${{ github.workspace }}
+        run: |
+          rm -rf "${HOME}/.local/share/ylgeeker/vim"
+          curl -fsSL "file://${GITHUB_WORKSPACE}/scripts/bootstrap.sh" \
+            | bash -s -- --with-cursor --dry-run
+          test -f "${HOME}/.local/share/ylgeeker/vim/vimrc"
+      - name: Remote install rejects unknown flags before clone
+        env:
+          REPO_RAW: file://${{ github.workspace }}
+        run: |
+          rm -rf "${HOME}/.local/share/ylgeeker/vim"
+          if curl -fsSL "file://${GITHUB_WORKSPACE}/install.sh" | bash -s -- --bad-flag; then
+            echo "expected failure"
+            exit 1
+          fi
+          test ! -d "${HOME}/.local/share/ylgeeker/vim"
+      - name: Remote install.sh dry-run (workspace repo)
+        env:
+          REPO_URL: file://${{ github.workspace }}
+          REPO_RAW: file://${{ github.workspace }}
+        run: |
+          cd /tmp
+          curl -fsSL "file://${GITHUB_WORKSPACE}/install.sh" \
+            | bash -s -- --repo-url "file://${GITHUB_WORKSPACE}" --dry-run
 
   verify-scripts:
     runs-on: macos-latest
@@ -27,4 +73,5 @@ jobs:
         run: |
           chmod +x install.sh scripts/bootstrap.sh
           bash -n install.sh
+          bash -n scripts/bootstrap.sh
           ./install.sh --dry-run || true

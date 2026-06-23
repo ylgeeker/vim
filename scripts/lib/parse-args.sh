@@ -9,7 +9,7 @@ Usage: ./install.sh [OPTIONS]
   --copy-config       Copy config files instead of symlinks
   --user-install      Install without sudo (~/.local)
   --include-gitconfig Include repo gitconfig in ~/.gitconfig
-  --system-upgrade    Run apt/dnf/yum upgrade (Linux) or brew update (macOS) before install
+  --system-upgrade    Install/upgrade system packages (apt/dnf/yum/brew); skipped by default
   --install-bazel     Install Bazel (optional)
   --node-version N    Node.js major version (default: 20)
   --go-version V      Go toolchain version (default: 1.24.2)

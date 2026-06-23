@@ -59,7 +59,19 @@ install_plugins() {
   install_vim_plug
   migrate_from_ycm
   info "PlugInstall (may take several minutes)..."
-  vim +PlugInstall +qall --not-a-term </dev/null || die "PlugInstall failed"
+  local _plug_out _plug_rc
+  _plug_out="$(mktemp)"
+  set +e
+  vim +PlugInstall +qall --not-a-term >"$_plug_out" 2>&1 </dev/null
+  _plug_rc=$?
+  set -e
+  if [[ "$_plug_rc" -ne 0 ]]; then
+    warn "PlugInstall failed (exit $_plug_rc)"
+    [[ -s "$_plug_out" ]] && tail -20 "$_plug_out" | while IFS= read -r line; do warn "  $line"; done
+    rm -f "$_plug_out"
+    die "PlugInstall failed"
+  fi
+  rm -f "$_plug_out"
   ensure_output_newline
   coc_install_with_retry
 }

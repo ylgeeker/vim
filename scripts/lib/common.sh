@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Shared helpers for install scripts.
 
+reset_tty_line() {
+  printf '\r\033[K'
+}
+
 ensure_output_newline() {
+  reset_tty_line
   printf '\n'
 }
 
@@ -16,10 +21,15 @@ run_with_timeout() {
   fi
 }
 
-info()  { echo -e "\033[34;1m[INFO]\033[0m $*"; }
-ok()    { echo -e "\033[32;1m[OK]\033[0m $*"; }
-warn()  { echo -e "\033[33;1m[WARN]\033[0m $*"; }
-err()   { echo -e "\033[31;1m[ERR]\033[0m $*"; }
+_print_status() {
+  reset_tty_line
+  printf '%b\n' "$1"
+}
+
+info()  { _print_status "\033[34;1m[INFO]\033[0m $*"; }
+ok()    { _print_status "\033[32;1m[OK]\033[0m $*"; }
+warn()  { _print_status "\033[33;1m[WARN]\033[0m $*"; }
+err()   { _print_status "\033[31;1m[ERR]\033[0m $*"; }
 die()   { err "$*"; exit 1; }
 
 STAGE_START=$SECONDS
@@ -29,6 +39,7 @@ stage_begin() {
 }
 stage_end() {
   local elapsed=$((SECONDS - STAGE_START))
+  ensure_output_newline
   ok "$1 (${elapsed}s)"
 }
 

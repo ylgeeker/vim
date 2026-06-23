@@ -82,7 +82,7 @@ curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/install.sh | bash
 ./install.sh --with-cursor   # 额外安装 Cursor 编辑器集成
 ./install.sh --user-install  # 无 sudo，安装到 ~/.local（能力有限）
 ./install.sh --copy-config   # 拷贝配置而非 symlink
-./install.sh --system-upgrade  # 安装前先升级系统包（Linux）或 brew update（macOS）
+./install.sh --system-upgrade  # 安装/升级系统依赖（apt/dnf/yum/brew；默认跳过）
 ./install.sh --dry-run       # 仅检测操作系统
 ./install.sh --help          # 查看全部参数
 
@@ -97,7 +97,7 @@ curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/install.sh | bash
 | `--with-cursor` | off | 安装 Cursor 与 agent CLI |
 | `--copy-config` | off | 拷贝配置，不用 symlink |
 | `--user-install` | off | 用户态安装，不用 sudo |
-| `--system-upgrade` | off | 安装依赖前升级系统包：Linux 执行 `apt/dnf/yum upgrade`；macOS 仅 `brew update`（较慢，CI/生产机通常不需要）。与 `--user-install` 同用时，Linux 下会跳过系统包安装，该选项无效 |
+| `--system-upgrade` | off | 安装并升级系统依赖：Linux 执行 `apt/dnf/yum update`、upgrade 及开发包安装；macOS 执行 `brew update` 并安装依赖。默认跳过系统包安装。与 `--user-install` 同用时 Linux 下无效 |
 | `--node-version N` | `20` | Node.js 主版本 |
 | `--go-version V` | `1.24.2` | Go 工具链版本 |
 | `--install-bazel` | off | 安装 Bazel（Debian/Ubuntu） |

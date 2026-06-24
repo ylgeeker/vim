@@ -42,7 +42,14 @@ chmod +x install.sh scripts/bootstrap.sh uninstall.sh
 **远程一行安装**（shallow clone 到 `~/.local/share/ylgeeker/vim`，可用 `--install-dir` 修改；需本机已安装 `git`）：
 
 ```sh
+# 安装main分支的版本（非稳定版）
 curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/scripts/bootstrap.sh | bash
+
+# 安装指定版本（推荐）
+curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/<version tag>/scripts/bootstrap.sh | bash
+
+# 安装特定版本（示例）
+curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/v1.0.0/scripts/bootstrap.sh | bash
 ```
 
 带参数示例：

@@ -46,12 +46,21 @@ source ~/.vimrc
 EOF
   ok "Neovim init.vim configured"
 
+  ensure_gpg_signing
+  ok "GPG signing helpers configured"
+
   if [[ "$INCLUDE_GITCONFIG" == "1" && -f "$repo/gitconfig" ]]; then
-    if ! grep -qF "$repo/gitconfig" "$HOME/.gitconfig" 2>/dev/null; then
+    if [[ -f "$HOME/.gitconfig" ]]; then
+      if grep -qF "$repo/gitconfig" "$HOME/.gitconfig" 2>/dev/null; then
+        info "Git config: repo gitconfig already included, skipping"
+      else
+        info "Git config: ~/.gitconfig already exists, skipping repo gitconfig"
+      fi
+    else
       {
         echo "[include]"
         echo "  path = $repo/gitconfig"
-      } >> "$HOME/.gitconfig"
+      } > "$HOME/.gitconfig"
       ok "Git include: $repo/gitconfig"
     fi
   fi

@@ -1,4 +1,8 @@
-" coc.nvim
+" coc.nvim — skip maps until plugin is on disk (headless PlugInstall / partial install)
+if !isdirectory(expand(g:plug_dir . '/coc.nvim'))
+  finish
+endif
+
 set hidden
 set updatetime=300
 set shortmess+=c

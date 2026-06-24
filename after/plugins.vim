@@ -1,13 +1,20 @@
 " fzf, nerdtree, tagbar, misc plugins
-nnoremap <silent> <c-p> :Files<CR>
-if executable('rg')
-  nnoremap <silent> <Leader>gg :Rg <C-R><C-W><CR>
-elseif executable('ag')
-  nnoremap <silent> <Leader>gg :Ag <C-R><C-W><CR>
+if isdirectory(expand(g:plug_dir . '/fzf.vim'))
+  nnoremap <silent> <c-p> :Files<CR>
+  if executable('rg')
+    nnoremap <silent> <Leader>gg :Rg <C-R><C-W><CR>
+  elseif executable('ag')
+    nnoremap <silent> <Leader>gg :Ag <C-R><C-W><CR>
+  endif
 endif
 
-nnoremap <silent> <Leader>k :TagbarOpen<CR>
-nnoremap <Leader>f :<C-u>call gitblame#echo()<CR>
+if isdirectory(expand(g:plug_dir . '/tagbar'))
+  nnoremap <silent> <Leader>k :TagbarOpen<CR>
+endif
+
+if isdirectory(expand(g:plug_dir . '/git-blame.vim'))
+  nnoremap <Leader>f :<C-u>call gitblame#echo()<CR>
+endif
 
 let g:ale_enabled = 0
 

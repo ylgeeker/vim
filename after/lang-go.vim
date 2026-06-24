@@ -13,9 +13,11 @@ let g:go_highlight_methods = 1
 let g:go_highlight_diagnostic_errors = 1
 let g:go_highlight_diagnostic_warnings = 1
 
-augroup ylgeeker_go_coc
-  autocmd!
-  autocmd FileType go nmap <buffer> gd <Plug>(coc-definition)
-  autocmd FileType go nmap <buffer> gr <Plug>(coc-references)
-  autocmd FileType go nmap <buffer> gi <Plug>(coc-implementation)
-augroup END
+if isdirectory(expand(g:plug_dir . '/coc.nvim'))
+  augroup ylgeeker_go_coc
+    autocmd!
+    autocmd FileType go nmap <buffer> gd <Plug>(coc-definition)
+    autocmd FileType go nmap <buffer> gr <Plug>(coc-references)
+    autocmd FileType go nmap <buffer> gi <Plug>(coc-implementation)
+  augroup END
+endif

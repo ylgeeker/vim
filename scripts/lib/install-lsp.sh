@@ -68,7 +68,7 @@ install_fzf() {
   info "Installing fzf..."
   rm -rf "$HOME/.fzf"
   git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
-  "$HOME/.fzf/install" --all <<< "y" || warn "fzf install failed"
+  "$HOME/.fzf/install" --all --no-update-rc --no-bash --no-fish --no-zsh || warn "fzf install failed"
   command -v fzf &>/dev/null && ok "fzf installed"
 }
 

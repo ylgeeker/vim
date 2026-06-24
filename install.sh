@@ -64,6 +64,12 @@ source "$LIB_DIR/install-cursor.sh"
 # shellcheck source=scripts/lib/verify.sh
 source "$LIB_DIR/verify.sh"
 
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+export NONINTERACTIVE=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_CLEANUP=1
+
 if [[ "$IS_DEBIAN" -eq 1 ]]; then
   # shellcheck source=scripts/lib/deps-debian.sh
   source "$LIB_DIR/deps-debian.sh"

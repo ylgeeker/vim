@@ -8,7 +8,7 @@ Usage: ./install.sh [OPTIONS]
   --with-cursor       Install Cursor editor and agent CLI
   --copy-config       Copy config files instead of symlinks
   --user-install      Install without sudo (~/.local)
-  --include-gitconfig Include repo gitconfig in ~/.gitconfig
+  --include-gitconfig Include repo gitconfig only when ~/.gitconfig does not exist
   --system-upgrade    Install/upgrade system packages (apt/dnf/yum/brew); skipped by default
   --install-bazel     Install Bazel (optional)
   --node-version N    Node.js major version (default: 20)

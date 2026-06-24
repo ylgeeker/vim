@@ -3,7 +3,7 @@ let g:plug_dir = expand('~/.vim/plugged')
 call plug#begin(g:plug_dir)
 
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'preservim/nerdtree'
 Plug 'majutsushi/tagbar'
@@ -17,7 +17,7 @@ Plug 'vim-scripts/DoxygenToolkit.vim'
 Plug 'altercation/vim-colors-solarized'
 Plug 'tpope/vim-eunuch'
 Plug 'octol/vim-cpp-enhanced-highlight'
-Plug 'vim-perl/vim-perl', { 'for': 'perl', 'do': 'make clean carp dancer highlight-all-pragmas moose test-more try-tiny' }
+Plug 'vim-perl/vim-perl', { 'for': 'perl' }
 Plug 'fatih/vim-go'
 " Built-in runtime/syntax/nasm.vim; lang-nasm.vim sets filetype + F5 build
 Plug 'frazrepo/vim-rainbow'
@@ -38,6 +38,9 @@ endfor
 " Basic editor settings
 if !isdirectory($HOME . '/.vim/swap')
   call mkdir($HOME . '/.vim/swap', 'p')
+endif
+if !isdirectory($HOME . '/tmp')
+  silent! call mkdir($HOME . '/tmp', 'p')
 endif
 set directory^=$HOME/.vim/swap//,~/tmp//
 
@@ -69,7 +72,7 @@ set t_Co=256
 set termguicolors
 set background=dark
 let g:solarized_termtrans = 1
-colorscheme solarized
+silent! colorscheme solarized
 
 nnoremap <silent> <c-t> :Vexplore<CR>
 let g:netrw_winsize = 30

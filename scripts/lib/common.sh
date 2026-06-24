@@ -72,7 +72,41 @@ ensure_path_line() {
       dir="${dir%\"}"
       export PATH="$dir:$PATH"
       ;;
+    export\ GPG_TTY=*)
+      export GPG_TTY="${TTY:-$(tty 2>/dev/null || true)}"
+      ;;
   esac
+}
+
+ensure_gpg_signing() {
+  local pinentry gpg_agent_conf
+  need_cmd gpg || return 0
+  if command -v pinentry-mac &>/dev/null; then
+    pinentry="$(command -v pinentry-mac)"
+  elif command -v pinentry-tty &>/dev/null; then
+    pinentry="$(command -v pinentry-tty)"
+  else
+    pinentry="$(command -v pinentry 2>/dev/null || true)"
+  fi
+  gpg_agent_conf="$HOME/.gnupg/gpg-agent.conf"
+  mkdir -p "$HOME/.gnupg"
+  chmod 700 "$HOME/.gnupg"
+  if [[ -n "$pinentry" ]]; then
+    if [[ ! -f "$gpg_agent_conf" ]] || ! grep -qF 'allow-loopback-pinentry' "$gpg_agent_conf" 2>/dev/null; then
+      cat > "$gpg_agent_conf" <<EOF
+default-cache-ttl 34560000
+max-cache-ttl 34560000
+pinentry-program $pinentry
+allow-loopback-pinentry
+EOF
+    fi
+    if command -v gpg-connect-agent &>/dev/null; then
+      gpg-connect-agent reloadagent /bye &>/dev/null || true
+    fi
+  else
+    warn "pinentry not found; gpg commit signing may fail until pinentry is installed"
+  fi
+  ensure_path_line 'export GPG_TTY=$(tty)'
 }
 
 download() {
@@ -101,4 +135,63 @@ first_line() {
   out="$("$@" 2>/dev/null)" || true
   [[ -n "$out" ]] || return 1
   printf '%s' "${out%%$'\n'*}"
+}
+
+COC_EXTENSIONS=(coc-clangd coc-go coc-pyright)
+
+coc_data_home() {
+  printf '%s' "${XDG_CONFIG_HOME:-$HOME/.config}/coc"
+}
+
+coc_ext_modules_dir() {
+  printf '%s' "$(coc_data_home)/extensions/node_modules"
+}
+
+coc_legacy_ext_modules_dir() {
+  printf '%s' "$HOME/.vim/coc/extensions/node_modules"
+}
+
+# Print missing extension names (one per line); no output when all are installed.
+coc_extensions_missing() {
+  local ext dir
+  dir="$(coc_ext_modules_dir)"
+  for ext in "${COC_EXTENSIONS[@]}"; do
+    [[ -d "$dir/$ext" ]] || printf '%s\n' "$ext"
+  done
+}
+
+nasm_verify_fixture() {
+  printf '%s' "${REPO_ROOT:?}/test/fixtures/nasm/smoke.asm"
+}
+
+nasm_resolve_fmt() {
+  if [[ -n "${NASM_FMT:-}" ]]; then
+    printf '%s' "$NASM_FMT"
+    return 0
+  fi
+  case "$(uname -s)" in
+    Darwin) printf '%s' 'macho64' ;;
+    *) printf '%s' 'elf64' ;;
+  esac
+}
+
+# Assemble a minimal nop fixture (no repo file dependency; works on elf64 + macho64).
+nasm_smoke_compile() {
+  local fmt="$1" tmp_asm tmp_o err_out rc
+  tmp_asm="$(mktemp "${TMPDIR:-/tmp}/vim-nasm-smoke.XXXXXX.asm")"
+  tmp_o="$(mktemp "${TMPDIR:-/tmp}/vim-nasm-smoke.XXXXXX.o")"
+  err_out="$(mktemp "${TMPDIR:-/tmp}/vim-nasm-smoke.XXXXXX.log")"
+  cat > "$tmp_asm" <<'EOF'
+section .text
+    nop
+EOF
+  set +e
+  nasm -f "$fmt" "$tmp_asm" -o "$tmp_o" >"$err_out" 2>&1
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 && -s "$err_out" ]]; then
+    warn "nasm -f ${fmt}: $(tail -1 "$err_out")"
+  fi
+  rm -f "$tmp_asm" "$tmp_o" "$err_out"
+  return "$rc"
 }

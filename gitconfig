@@ -43,9 +43,10 @@
     editor = vim
 [credential]
 [commit]
-	gpgsign = false
+	gpgsign = true
 [http]
 	cookiefile = ~/.gitcookies
 [gpg]
 	program = gpg
 [user]
+	signingkey = 

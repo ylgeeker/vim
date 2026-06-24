@@ -3,7 +3,7 @@
 vim_major_version() {
   local line
   line="$(first_line vim --version)" || return 0
-  sed -n 's/.*IMproved \([0-9]\+\).*/\1/p' <<<"$line"
+  sed -En 's/.*IMproved ([0-9]+).*/\1/p' <<<"$line"
 }
 
 vim_python3_works() {

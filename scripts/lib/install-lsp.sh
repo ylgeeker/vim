@@ -6,7 +6,13 @@ install_go() {
     return 0
   fi
   if command -v go &>/dev/null; then
-    warn "Go $(go_installed_version) is older than ${GO_VERSION}; upgrading..."
+    local installed_ver
+    installed_ver="$(go_installed_version)"
+    if [[ -n "$installed_ver" ]]; then
+      warn "Go ${installed_ver} is older than ${GO_VERSION}; upgrading..."
+    else
+      warn "Go present but version unreadable; installing ${GO_VERSION}..."
+    fi
   else
     info "Installing Go ${GO_VERSION}..."
   fi
@@ -19,7 +25,7 @@ install_go() {
   mkdir -p "$build_root"
   url="https://dl.google.com/go/${tar}"
   download "$url" "$build_root/$tar" || die "Go download failed"
-  if [[ "$USER_INSTALL" == "1" ]]; then
+  if [[ "$USER_INSTALL" == "1" ]] || [[ "$IS_MACOS" -eq 1 ]]; then
     rm -rf "$HOME/.local/go"
     tar -C "$HOME/.local" -xzf "$build_root/$tar"
     ensure_path_line 'export PATH="$HOME/.local/go/bin:$PATH"'

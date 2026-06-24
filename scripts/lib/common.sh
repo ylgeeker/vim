@@ -135,7 +135,7 @@ node_has_global_crypto() {
 
 go_installed_version() {
   need_cmd go || return 1
-  go version 2>/dev/null | sed -n 's/.*go\([0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\).*/\1/p' | head -1
+  go env GOVERSION 2>/dev/null | sed 's/^go//'
 }
 
 # True when installed Go is >= requested GO_VERSION (e.g. 1.24.2).

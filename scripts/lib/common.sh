@@ -161,6 +161,57 @@ parallel_jobs() {
   [[ -n "$n" && "$n" -gt 0 ]] && printf '%s' "$n" || printf '%s' '2'
 }
 
+GO_PROXY_VALUE="${GO_PROXY_VALUE:-https://goproxy.cn,direct}"
+
+GO_SHELL_RC_FILES=("$HOME/.bashrc" "$HOME/.zshrc")
+
+shell_rc_has_goproxy() {
+  local rc="$1"
+  [[ -f "$rc" ]] || return 1
+  grep -qE '^[[:space:]]*(export[[:space:]]+)?GOPROXY=' "$rc" 2>/dev/null
+}
+
+_ensure_goproxy_in_rc() {
+  local rc="$1" line
+  line="export GOPROXY=\"${GO_PROXY_VALUE}\""
+  [[ -f "$rc" ]] || touch "$rc"
+  if shell_rc_has_goproxy "$rc"; then
+    info "GOPROXY already set in ${rc}, skipping"
+    return 0
+  fi
+  echo "$line" >> "$rc"
+  ok "Appended GOPROXY to ${rc}"
+}
+
+ensure_go_shell_proxy() {
+  local rc
+  for rc in "${GO_SHELL_RC_FILES[@]}"; do
+    _ensure_goproxy_in_rc "$rc"
+  done
+}
+
+ensure_go_proxy() {
+  command -v go &>/dev/null || return 0
+  if [[ "$(go env GOPROXY 2>/dev/null)" == *goproxy.cn* ]]; then
+    ok "go env GOPROXY already configured"
+  else
+    go env -w "GOPROXY=${GO_PROXY_VALUE}" 2>/dev/null \
+      || warn "go env -w GOPROXY failed"
+    ok "go env GOPROXY=${GO_PROXY_VALUE}"
+  fi
+  ensure_go_shell_proxy
+  [[ -z "${GOPROXY:-}" ]] && export GOPROXY="${GO_PROXY_VALUE}"
+}
+
+goproxy_configured() {
+  [[ "$(go env GOPROXY 2>/dev/null)" == *goproxy.cn* ]] && return 0
+  local rc
+  for rc in "${GO_SHELL_RC_FILES[@]}"; do
+    shell_rc_has_goproxy "$rc" && return 0
+  done
+  return 1
+}
+
 # Avoid SIGPIPE under pipefail when only the first line of a command is needed.
 first_line() {
   local out

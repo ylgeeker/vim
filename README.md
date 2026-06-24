@@ -20,7 +20,7 @@ Vim 与 Neovim **共用同一套配置**（`~/.vim/plugged`），在终端里用
 | 能力 | 实现方式 |
 |------|----------|
 | C++ 跳转 / 补全 / 诊断 | coc-clangd（需 `compile_commands.json`） |
-| Go 跳转 / 补全 | coc-go（gopls） |
+| Go 跳转 / 补全 | coc-go（gopls）；安装时自动配置 `GOPROXY=https://goproxy.cn,direct` |
 | Python 跳转 / 补全 | coc-pyright |
 | NASM 语法高亮 / 编译运行 | 内置语法 + gutentags；`<F5>` 一键构建 |
 | 文件搜索 / 符号浏览 | fzf、NERDTree、Tagbar |
@@ -42,7 +42,7 @@ chmod +x install.sh scripts/bootstrap.sh uninstall.sh
 **远程一行安装**（shallow clone 到 `~/.local/share/ylgeeker/vim`，可用 `--install-dir` 修改；需本机已安装 `git`）：
 
 ```sh
-# 安装main分支的版本（非稳定版）
+# 安装最新的版本（可能不稳定）
 curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/scripts/bootstrap.sh | bash
 
 # 安装指定版本（推荐）
@@ -107,12 +107,15 @@ curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/install.sh | bash
 | `--system-upgrade` | off | 在默认补齐缺失依赖之外，再执行全量系统升级：Linux `apt/dnf/yum upgrade`；macOS `brew update`。与 `--user-install` 同用时 Linux 下无效 |
 | `--node-version N` | `20` | Node.js 主版本 |
 | `--go-version V` | `1.24.2` | Go 工具链版本 |
+| `GO_PROXY_VALUE` | `https://goproxy.cn,direct` | 安装时写入 `go env -w` 与 shell rc 的 GOPROXY（环境变量，非 CLI 参数） |
 | `--install-bazel` | off | 安装 Bazel（Debian/Ubuntu） |
 | `--dry-run` | off | 检测 OS 后退出 |
 
 > **迁移说明**：旧参数 `--minimal-upgrade` 已移除，请改用 `--system-upgrade`。
 
 完整列表见 `./install.sh --help`。`install.sh` 安装选项**仅通过命令行传入**；远程 bootstrap 另支持 `REPO_RAW` / `REPO_URL`（见上文）。
+
+**Go 模块代理**：安装时会 `go env -w GOPROXY=https://goproxy.cn,direct`，并尝试写入 `~/.bashrc` 与 `~/.zshrc`（某文件已有 `GOPROXY=` 则跳过该文件、不覆盖）。gopls 走 `go env`；终端可走 shell rc。执行前可设 `GO_PROXY_VALUE` 覆盖默认值。
 
 ---
 

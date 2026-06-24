@@ -2,6 +2,7 @@
 
 install_go() {
   if command -v go &>/dev/null && go_version_sufficient; then
+    ensure_go_proxy
     ok "Go $(go version)"
     return 0
   fi
@@ -37,6 +38,7 @@ install_go() {
     export PATH="/usr/local/go/bin:$PATH"
   fi
   go_version_sufficient || die "Go upgrade failed (got $(go_installed_version), need >= ${GO_VERSION})"
+  ensure_go_proxy
   ok "Go $(go version)"
 }
 

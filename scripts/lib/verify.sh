@@ -18,6 +18,7 @@ verify_install() {
   check "node>=20" '[[ $(node_major_version) -ge 20 ]]'
   check "node+crypto" 'node_has_global_crypto'
   check "go>=${GO_VERSION}" 'go_version_sufficient'
+  check "GOPROXY" 'goproxy_configured'
   check "clangd" "command -v clangd"
   check "gopls" "command -v gopls"
   check "nasm" "command -v nasm"

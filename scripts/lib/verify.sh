@@ -15,7 +15,9 @@ verify_install() {
   if vim --version 2>&1 | grep -q '+python3'; then
     check "vim+python3" 'out="$(vim --not-a-term -c "py3 import sys" -c "qa!" 2>&1)"; ! grep -qE "E263|E370|无法加载|can.t load Python" <<<"$out"'
   fi
-  check "node>=18" '[[ $(node_major_version) -ge 18 ]]'
+  check "node>=20" '[[ $(node_major_version) -ge 20 ]]'
+  check "node+crypto" 'node_has_global_crypto'
+  check "go>=${GO_VERSION}" 'go_version_sufficient'
   check "clangd" "command -v clangd"
   check "gopls" "command -v gopls"
   check "nasm" "command -v nasm"

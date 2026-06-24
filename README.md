@@ -9,7 +9,7 @@
 本仓库解决两件事：
 
 1. **配置即代码** — `vimrc`、`after/` 等配置集中在 Git 仓库，默认 symlink 到 `~/.vimrc`。
-2. **环境一键就绪** — `install.sh` 自动安装 Vim/Neovim、Node.js、语言服务器（clangd、gopls 等）、插件与 coc 扩展，无需手工拼插件和 LSP。
+2. **环境一键就绪** — `install.sh` 自动检测并安装/升级缺失依赖（Node.js ≥ 20、clangd、gopls、NASM 等）、插件与 coc 扩展，无需手工拼插件和 LSP。
 
 Vim 与 Neovim **共用同一套配置**（`~/.vim/plugged`），在终端里用 `vim` 或 `nvim` 体验一致。
 
@@ -80,9 +80,9 @@ curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/install.sh | bash
 ```sh
 ./install.sh                 # 安装 / 更新环境（默认不装 Cursor）
 ./install.sh --with-cursor   # 额外安装 Cursor 编辑器集成
-./install.sh --user-install  # 无 sudo，安装到 ~/.local（能力有限）
+./install.sh --user-install  # 无 sudo：依赖安装到 ~/.local（Node/clangd/Go/gopls 等）
 ./install.sh --copy-config   # 拷贝配置而非 symlink
-./install.sh --system-upgrade  # 安装/升级系统依赖（apt/dnf/yum/brew；默认跳过）
+./install.sh --system-upgrade  # 额外执行全量系统升级（apt/dnf/yum upgrade、brew update）
 ./install.sh --dry-run       # 仅检测操作系统
 ./install.sh --help          # 查看全部参数
 
@@ -96,8 +96,8 @@ curl -fsSL https://raw.githubusercontent.com/ylgeeker/vim/main/install.sh | bash
 |------|------|------|
 | `--with-cursor` | off | 安装 Cursor 与 agent CLI |
 | `--copy-config` | off | 拷贝配置，不用 symlink |
-| `--user-install` | off | 用户态安装，不用 sudo |
-| `--system-upgrade` | off | 安装并升级系统依赖：Linux 执行 `apt/dnf/yum update`、upgrade 及开发包安装；macOS 执行 `brew update` 并安装依赖。默认跳过系统包安装。与 `--user-install` 同用时 Linux 下无效 |
+| `--user-install` | off | 无 sudo 安装到 `~/.local`：Linux 自动下载 Node 官方包、clangd 预编译包，源码编译 nasm；Go/gopls/fzf 同装用户目录 |
+| `--system-upgrade` | off | 在默认补齐缺失依赖之外，再执行全量系统升级：Linux `apt/dnf/yum upgrade`；macOS `brew update`。与 `--user-install` 同用时 Linux 下无效 |
 | `--node-version N` | `20` | Node.js 主版本 |
 | `--go-version V` | `1.24.2` | Go 工具链版本 |
 | `--install-bazel` | off | 安装 Bazel（Debian/Ubuntu） |

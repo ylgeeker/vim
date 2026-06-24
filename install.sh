@@ -47,6 +47,10 @@ mkdir -p "$INSTALL_ROOT"
 source "$LIB_DIR/common.sh"
 # shellcheck source=scripts/lib/detect_os.sh
 source "$LIB_DIR/detect_os.sh"
+# shellcheck source=scripts/lib/user-local-deps.sh
+source "$LIB_DIR/user-local-deps.sh"
+# shellcheck source=scripts/lib/ensure-deps.sh
+source "$LIB_DIR/ensure-deps.sh"
 # shellcheck source=scripts/lib/install-node.sh
 source "$LIB_DIR/install-node.sh"
 # shellcheck source=scripts/lib/install-vim.sh
@@ -70,6 +74,10 @@ export NONINTERACTIVE=1
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_INSTALL_CLEANUP=1
 
+stage_begin "Bootstrap tools"
+ensure_bootstrap_tools
+stage_end "Bootstrap"
+
 if [[ "$IS_DEBIAN" -eq 1 ]]; then
   # shellcheck source=scripts/lib/deps-debian.sh
   source "$LIB_DIR/deps-debian.sh"
@@ -87,11 +95,13 @@ stage_end "Node.js"
 
 stage_begin "System dependencies"
 if [[ "$USER_INSTALL" == "1" && "$SYSTEM_UPGRADE" == "1" && "$IS_MACOS" -eq 0 ]]; then
-  warn "--system-upgrade ignored with --user-install on Linux (system packages are not installed)"
+  warn "--system-upgrade ignored with --user-install on Linux (no system package upgrade)"
 fi
 if [[ "$IS_DEBIAN" -eq 1 ]]; then install_deps_debian
 elif [[ "$IS_RHEL" -eq 1 ]]; then install_deps_rhel
 elif [[ "$IS_MACOS" -eq 1 ]]; then install_deps_macos
+else
+  ensure_system_dependencies
 fi
 stage_end "Dependencies"
 

@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 
 install_go() {
-  command -v go &>/dev/null && return 0
-  info "Installing Go ${GO_VERSION}..."
+  if command -v go &>/dev/null && go_version_sufficient; then
+    ok "Go $(go version)"
+    return 0
+  fi
+  if command -v go &>/dev/null; then
+    warn "Go $(go_installed_version) is older than ${GO_VERSION}; upgrading..."
+  else
+    info "Installing Go ${GO_VERSION}..."
+  fi
   local goos goarch tar url build_root
   goos="$(uname -s | tr '[:upper:]' '[:lower:]')"
   [[ "$goos" == "darwin" ]] && goos="darwin" || goos="linux"
-  goarch="$ARCH"
-  [[ "$goarch" == "x86_64" ]] && goarch="amd64"
+  goarch="$(normalize_go_arch)"
   tar="go${GO_VERSION}.${goos}-${goarch}.tar.gz"
   build_root="$INSTALL_ROOT"
   mkdir -p "$build_root"
@@ -24,19 +30,26 @@ install_go() {
     ensure_path_line 'export PATH="/usr/local/go/bin:$PATH"'
     export PATH="/usr/local/go/bin:$PATH"
   fi
+  go_version_sufficient || die "Go upgrade failed (got $(go_installed_version), need >= ${GO_VERSION})"
   ok "Go $(go version)"
 }
 
 install_gopls() {
-  if command -v gopls &>/dev/null; then
-    ok "gopls $(first_line gopls version)"
-    return 0
-  fi
   install_go
   export PATH="${HOME}/go/bin:/usr/local/go/bin:${HOME}/.local/go/bin:$PATH"
+  if command -v gopls &>/dev/null; then
+    info "Ensuring gopls is up to date..."
+  else
+    info "Installing gopls..."
+  fi
   go install golang.org/x/tools/gopls@latest || warn "gopls install failed (install Go module manually)"
   command -v gopls &>/dev/null && ensure_path_line 'export PATH="$HOME/go/bin:$PATH"'
-  command -v gopls &>/dev/null && ok "gopls $(first_line gopls version)" || warn "gopls not available"
+  if command -v gopls &>/dev/null; then
+    ok "gopls $(first_line gopls version)"
+  else
+    warn "gopls not available"
+    return 1
+  fi
 }
 
 install_ctags() {
@@ -45,15 +58,16 @@ install_ctags() {
     return 0
   fi
   if [[ "$IS_MACOS" -eq 1 ]]; then
-    brew install universal-ctags 2>/dev/null || true
+    _ensure_brew_formula universal-ctags 2>/dev/null || true
     command -v ctags &>/dev/null && ok "ctags installed" && return 0
   fi
+  ensure_build_deps
   info "Building universal-ctags..."
   local build_root="$INSTALL_ROOT"
   rm -rf "$build_root/ctags"
   git clone --depth 1 https://github.com/universal-ctags/ctags.git "$build_root/ctags"
   (
-    cd "$build_root/ctags" && ./autogen.sh && ./configure && make -j"$(nproc 2>/dev/null || echo 2)"
+    cd "$build_root/ctags" && ./autogen.sh && ./configure && make -j"$(parallel_jobs)"
   ) || { warn "ctags build failed; NASM tag jump may be limited"; return 1; }
   if [[ "$USER_INSTALL" == "1" ]]; then
     make -C "$build_root/ctags" install prefix="$HOME/.local"
@@ -65,6 +79,7 @@ install_ctags() {
 
 install_fzf() {
   command -v fzf &>/dev/null && return 0
+  need_cmd git || die "git required for fzf install"
   info "Installing fzf..."
   rm -rf "$HOME/.fzf"
   git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
@@ -73,7 +88,9 @@ install_fzf() {
 }
 
 install_lsp_stack() {
-  install_gopls
+  ensure_clangd || true
+  ensure_nasm || true
+  install_gopls || true
   install_ctags || true
   install_fzf || true
   command -v clangd &>/dev/null || warn "clangd not in PATH"
@@ -82,6 +99,10 @@ install_lsp_stack() {
 }
 
 resolve_clangd_path() {
+  if [[ -x "$HOME/.local/clangd/bin/clangd" ]]; then
+    echo "$HOME/.local/clangd/bin/clangd"
+    return
+  fi
   if [[ "$IS_MACOS" -eq 1 ]] && command -v brew &>/dev/null; then
     local p
     p="$(brew --prefix llvm 2>/dev/null)/bin/clangd"

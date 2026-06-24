@@ -3,6 +3,11 @@ if !isdirectory(expand(g:plug_dir . '/coc.nvim'))
   finish
 endif
 
+" Use the same Node binary as the shell (avoids stale distro Node 18 on minimal PATH).
+if executable('node')
+  let g:coc_node_path = exepath('node')
+endif
+
 set hidden
 set updatetime=300
 set shortmess+=c

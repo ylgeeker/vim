@@ -92,14 +92,12 @@ ensure_gpg_signing() {
   mkdir -p "$HOME/.gnupg"
   chmod 700 "$HOME/.gnupg"
   if [[ -n "$pinentry" ]]; then
-    if [[ ! -f "$gpg_agent_conf" ]] || ! grep -qF 'allow-loopback-pinentry' "$gpg_agent_conf" 2>/dev/null; then
-      cat > "$gpg_agent_conf" <<EOF
+    cat > "$gpg_agent_conf" <<EOF
 default-cache-ttl 34560000
 max-cache-ttl 34560000
 pinentry-program $pinentry
 allow-loopback-pinentry
 EOF
-    fi
     if command -v gpg-connect-agent &>/dev/null; then
       gpg-connect-agent reloadagent /bye &>/dev/null || true
     fi
@@ -127,6 +125,40 @@ need_cmd() {
 node_major_version() {
   need_cmd node || echo 0
   node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0
+}
+
+# coc.nvim requires Node >= 20.19 (global Web Crypto API).
+node_has_global_crypto() {
+  need_cmd node || return 1
+  node -e 'process.exit(typeof globalThis.crypto !== "undefined" ? 0 : 1)' 2>/dev/null
+}
+
+go_installed_version() {
+  need_cmd go || return 1
+  go version 2>/dev/null | sed -n 's/.*go\([0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?\).*/\1/p' | head -1
+}
+
+# True when installed Go is >= requested GO_VERSION (e.g. 1.24.2).
+go_version_sufficient() {
+  local installed="${1:-$(go_installed_version)}"
+  local required="${GO_VERSION:-1.24.2}"
+  [[ -n "$installed" ]] || return 1
+  [[ "$(printf '%s\n' "$required" "$installed" | sort -V | head -1)" == "$required" ]]
+}
+
+# Go official tarballs use darwin/linux + amd64/arm64.
+normalize_go_arch() {
+  case "${1:-$ARCH}" in
+    x86_64|amd64) printf '%s' 'amd64' ;;
+    aarch64|arm64) printf '%s' 'arm64' ;;
+    *) printf '%s' "${1:-$ARCH}" ;;
+  esac
+}
+
+parallel_jobs() {
+  local n
+  n="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)"
+  [[ -n "$n" && "$n" -gt 0 ]] && printf '%s' "$n" || printf '%s' '2'
 }
 
 # Avoid SIGPIPE under pipefail when only the first line of a command is needed.

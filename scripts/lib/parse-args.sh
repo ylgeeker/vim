@@ -9,7 +9,7 @@ Usage: ./install.sh [OPTIONS]
   --copy-config       Copy config files instead of symlinks
   --user-install      Install without sudo (~/.local)
   --include-gitconfig Include repo gitconfig only when ~/.gitconfig does not exist
-  --system-upgrade    Install/upgrade system packages (apt/dnf/yum/brew); skipped by default
+  --system-upgrade    Full OS package upgrade (apt/dnf/yum upgrade, brew update); missing deps install by default
   --install-bazel     Install Bazel (optional)
   --node-version N    Node.js major version (default: 20)
   --go-version V      Go toolchain version (default: 1.24.2)
@@ -41,6 +41,7 @@ _parse_install_defaults() {
   INSTALL_BAZEL=0
   NODE_VERSION=20
   GO_VERSION=1.24.2
+  CLANGD_VERSION=
   INSTALL_ROOT="/tmp/ylgeeker/vim-build"
   DRY_RUN=0
 }
@@ -124,7 +125,7 @@ parse_install_args() {
   fi
 
   export SKIP_CURSOR COPY_CONFIG USER_INSTALL INCLUDE_GITCONFIG
-  export SYSTEM_UPGRADE INSTALL_BAZEL NODE_VERSION GO_VERSION
+  export SYSTEM_UPGRADE INSTALL_BAZEL NODE_VERSION GO_VERSION CLANGD_VERSION
   export INSTALL_ROOT DRY_RUN
 }
 
